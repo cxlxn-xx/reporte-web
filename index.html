@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte Interactivo - Catálogo</title>
+<style>
+  :root{
+    --azul: #2b4c7e;
+    --azul-claro: #eaf1fb;
+    --gris: #f4f4f4;
+    --borde: #d8dde3;
+    --texto: #26313d;
+    --acento: #e0a94e;
+    --verde: #4f8a5b;
+    --rojo: #c0503e;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin: 0;
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+    background: var(--gris);
+    color: var(--texto);
+    line-height: 1.5;
+  }
+
+  header{
+    background: var(--azul);
+    color: white;
+    padding: 28px 20px 22px;
+    text-align: center;
+    border-bottom: 6px solid var(--acento);
+  }
+
+  header h1{
+    margin: 0 0 6px;
+    font-size: 1.7rem;
+  }
+
+  header p{
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.9;
+  }
+
+  main{
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .panel{
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+
+  .panel h2{
+    margin-top: 0;
+    font-size: 1.05rem;
+    color: var(--azul);
+    border-bottom: 2px solid var(--azul-claro);
+    padding-bottom: 8px;
+  }
+
+  .controles{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+  }
+
+  .campo{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+  }
+
+  .campo label{
+    font-weight: 600;
+    color: var(--azul);
+  }
+
+  .campo input, .campo select{
+    padding: 7px 9px;
+    border: 1px solid var(--borde);
+    border-radius: 5px;
+    font-size: 0.9rem;
+    background: white;
+    min-width: 160px;
+  }
+
+  .tabs{
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .tab-btn{
+    padding: 8px 16px;
+    border: 1px solid var(--azul);
+    background: white;
+    color: var(--azul);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .tab-btn.activo{
+    background: var(--azul);
+    color: white;
+  }
+
+  .contador{
+    font-size: 0.85rem;
+    color: #666;
+    margin: 6px 0 14px;
+  }
+
+  .contador strong{
+    color: var(--azul);
+  }
+
+  table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  th, td{
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--borde);
+  }
+
+  th{
+    background: var(--azul-claro);
+    color: var(--azul);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  th:hover{
+    background: #dbe7f8;
+  }
+
+  th.orden-asc::after{ content: " ▲"; }
+  th.orden-desc::after{ content: " ▼"; }
+
+  tbody tr:hover{
+    background: #f9fbfe;
+  }
+
+  .etiqueta{
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  .estado-Disponible, .estado-Activo{ background: var(--verde); }
+  .estado-Prestado, .estado-Inactivo{ background: var(--rojo); }
+  .estado-Reservado{ background: var(--acento); }
+
+  .vacio{
+    text-align: center;
+    padding: 30px;
+    color: #888;
+    font-style: italic;
+  }
+
+  footer{
+    text-align: center;
+    padding: 18px;
+    font-size: 0.8rem;
+    color: #888;
+  }
+
+  .btn-limpiar{
+    padding: 8px 14px;
+    background: white;
+    border: 1px solid var(--rojo);
+    color: var(--rojo);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    height: fit-content;
+  }
+
+  .btn-limpiar:hover{
+    background: var(--rojo);
+    color: white;
+  }
+
+  @media (max-width: 600px){
+    table, thead, tbody, th, td, tr{ display: block; }
+    thead tr{ position: absolute; top: -9999px; left: -9999px; }
+    tr{ margin-bottom: 12px; border: 1px solid var(--borde); border-radius: 6px; padding: 6px 0; }
+    td{ border: none; padding: 6px 10px; }
+    td::before{
+      content: attr(data-etiqueta);
+      font-weight: 700;
+      color: var(--azul);
+      display: inline-block;
+      width: 110px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📋 Catálogo Interactivo</h1>
+  <p>Trabajo práctico — Listado y filtrado de datos</p>
+</header>
+
+<main>
+
+  <div class="panel">
+    <h2>1. Elegí qué querés ver</h2>
+    <div class="tabs" id="tabs"></div>
+  </div>
+
+  <div class="panel">
+    <h2>2. Filtrar</h2>
+    <div class="controles">
+      <div class="campo">
+        <label for="buscar">Buscar por nombre</label>
+        <input type="text" id="buscar" placeholder="Escribí algo...">
+      </div>
+      <div class="campo">
+        <label for="filtroCategoria">Categoría</label>
+        <select id="filtroCategoria"></select>
+      </div>
+      <div class="campo">
+        <label for="filtroEstado">Estado</label>
+        <select id="filtroEstado"></select>
+      </div>
+      <div class="campo">
+        <label for="filtroAnio">Año</label>
+        <select id="filtroAnio"></select>
+      </div>
+      <button class="btn-limpiar" id="limpiar">Limpiar filtros</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>3. Resultados</h2>
+    <p class="contador">Mostrando <strong id="cantidad">0</strong> resultado(s)</p>
+    <div style="overflow-x:auto">
+      <table id="tabla">
+        <thead>
+          <tr id="filas-encabezado"></tr>
+        </thead>
+        <tbody id="cuerpo-tabla"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Reporte generado con HTML, CSS y JavaScript · Datos de ejemplo editables en el código fuente
+</footer>
+
+<script>
+/* ============================================================
+   DATOS
+   Cambiá o agregá los objetos que quieras en cada arreglo.
+   Cada "colección" es una pestaña. La clave del objeto
+   colecciones es el nombre que se muestra en la pestaña.
+   Los campos "columnas" definen qué se muestra en la tabla
+   y en qué orden. "estado" y "categoria" alimentan los filtros.
+   ============================================================ */
+
+const colecciones = {
+  "Artículos": {
+    columnas: [
+      { clave: "titulo",    etiqueta: "Título" },
+      { clave: "categoria", etiqueta: "Categoría" },
+      { clave: "autor",     etiqueta: "Autor" },
+      { clave: "anio",      etiqueta: "Año" },
+      { clave: "estado",    etiqueta: "Estado" }
+    ],
+    datos: [
+      { titulo: "Introducción a las redes neuronales",  categoria: "Tecnología",  autor: "M. Gómez",     anio: 2023, estado: "Disponible" },
+      { titulo: "Historia del Río de la Plata",          categoria: "Historia",    autor: "L. Fernández", anio: 2019, estado: "Prestado" },
+      { titulo: "Cambio climático en el NEA",            categoria: "Ambiente",    autor: "S. Duarte",    anio: 2022, estado: "Disponible" },
+      { titulo: "Economía circular aplicada",            categoria: "Economía",   autor: "R. Paredes",   anio: 2021, estado: "Reservado" },
+      { titulo: "Literatura guaraní contemporánea",      categoria: "Literatura", autor: "N. Acosta",    anio: 2020, estado: "Disponible" },
+      { titulo: "Bases de datos NoSQL",                  categoria: "Tecnología",  autor: "F. Ibarra",    anio: 2024, estado: "Prestado" },
+      { titulo: "El yerbatero: producción y comercio",   categoria: "Economía",   autor: "C. Weiss",     anio: 2018, estado: "Disponible" },
+      { titulo: "Biodiversidad de Misiones",             categoria: "Ambiente",   autor: "P. Sosa",      anio: 2023, estado: "Disponible" },
+      { titulo: "Inteligencia artificial en la educación", categoria: "Tecnología", autor: "D. Roldán",  anio: 2024, estado: "Reservado" },
+      { titulo: "Movimientos independentistas del NEA",  categoria: "Historia",    autor: "V. Cabral",    anio: 2017, estado: "Disponible" },
+      { titulo: "Poesía misionera del siglo XX",          categoria: "Literatura", autor: "A. Benítez",   anio: 2016, estado: "Prestado" },
+      { titulo: "Comercio fronterizo y desarrollo local", categoria: "Economía",   autor: "J. Meza",      anio: 2020, estado: "Disponible" },
+      { titulo: "Gestión de residuos urbanos",             categoria: "Ambiente",   autor: "S. Duarte",    anio: 2021, estado: "Prestado" },
+      { titulo: "Seguridad en aplicaciones web",           categoria: "Tecnología",  autor: "F. Ibarra",    anio: 2022, estado: "Disponible" },
+      { titulo: "El Mercosur: origen y evolución",         categoria: "Economía",   autor: "R. Paredes",   anio: 2019, estado: "Disponible" },
+      { titulo: "Narrativa oral guaraní",                  categoria: "Literatura", autor: "N. Acosta",    anio: 2018, estado: "Reservado" },
+      { titulo: "Energías renovables en zonas rurales",    categoria: "Ambiente",   autor: "P. Sosa",      anio: 2024, estado: "Disponible" },
+      { titulo: "Historia de las misiones jesuíticas",      categoria: "Historia",   autor: "V. Cabral",    anio: 2015, estado: "Disponible" },
+      { titulo: "Inclusión digital en escuelas rurales",    categoria: "Tecnología", autor: "D. Roldán",    anio: 2023, estado: "Prestado" },
+      { titulo: "Turismo sustentable en Iguazú",             categoria: "Ambiente",   autor: "C. Weiss",     anio: 2020, estado: "Disponible" },
+      { titulo: "Cuentos breves del litoral",                categoria: "Literatura", autor: "A. Benítez",   anio: 2019, estado: "Disponible" },
+      { titulo: "Análisis de datos con hojas de cálculo",    categoria: "Tecnología", autor: "F. Ibarra",    anio: 2021, estado: "Reservado" },
+      { titulo: "Cooperativismo agrícola en Misiones",       categoria: "Economía",   autor: "J. Meza",      anio: 2022, estado: "Disponible" }
+    ]
+  },
+  "Personas": {
+    columnas: [
+      { clave: "nombre",    etiqueta: "Nombre" },
+      { clave: "categoria", etiqueta: "Rol" },
+      { clave: "area",      etiqueta: "Área" },
+      { clave: "anio",      etiqueta: "Desde" },
+      { clave: "estado",    etiqueta: "Estado" }
+    ],
+    datos: [
+      { nombre: "Marina Gómez",    categoria: "Docente",       area: "Sistemas",  anio: 2015, estado: "Activo" },
+      { nombre: "Luis Fernández",  categoria: "Alumno",        area: "Historia",  anio: 2022, estado: "Activo" },
+      { nombre: "Sabrina Duarte",  categoria: "Docente",       area: "Ambiente",  anio: 2018, estado: "Inactivo" },
+      { nombre: "Rodrigo Paredes", categoria: "Alumno",        area: "Economía",  anio: 2021, estado: "Activo" },
+      { nombre: "Noelia Acosta",   categoria: "Bibliotecaria", area: "Letras",    anio: 2019, estado: "Activo" },
+      { nombre: "Franco Ibarra",   categoria: "Alumno",        area: "Sistemas",  anio: 2023, estado: "Activo" },
+      { nombre: "Carla Weiss",     categoria: "Docente",       area: "Economía",  anio: 2012, estado: "Inactivo" },
+      { nombre: "Diego Roldán",    categoria: "Alumno",        area: "Sistemas",  anio: 2024, estado: "Activo" },
+      { nombre: "Valeria Cabral",  categoria: "Docente",       area: "Historia",  anio: 2016, estado: "Activo" },
+      { nombre: "Agustín Benítez", categoria: "Alumno",        area: "Letras",    anio: 2020, estado: "Inactivo" },
+      { nombre: "Julieta Meza",    categoria: "Bibliotecaria", area: "Economía",  anio: 2017, estado: "Activo" },
+      { nombre: "Santiago Peralta",categoria: "Alumno",        area: "Ambiente",  anio: 2023, estado: "Activo" }
+    ]
+  }
+};
+
+/* ============================================================
+   LÓGICA (no hace falta tocar nada de acá para abajo)
+   ============================================================ */
+
+let coleccionActual = Object.keys(colecciones)[0];
+let ordenClave = null;
+let ordenAscendente = true;
+
+const elTabs        = document.getElementById("tabs");
+const elBuscar       = document.getElementById("buscar");
+const elCategoria    = document.getElementById("filtroCategoria");
+const elEstado       = document.getElementById("filtroEstado");
+const elAnio         = document.getElementById("filtroAnio");
+const elCuerpoTabla  = document.getElementById("cuerpo-tabla");
+const elEncabezado   = document.getElementById("filas-encabezado");
+const elCantidad     = document.getElementById("cantidad");
+const elLimpiar      = document.getElementById("limpiar");
+
+function crearPestanas(){
+  elTabs.innerHTML = "";
+  Object.keys(colecciones).forEach(nombre => {
+    const btn = document.createElement("button");
+    btn.className = "tab-btn" + (nombre === coleccionActual ? " activo" : "");
+    btn.textContent = nombre;
+    btn.addEventListener("click", () => {
+      coleccionActual = nombre;
+      ordenClave = null;
+      elBuscar.value = "";
+      crearPestanas();
+      crearFiltros();
+      crearEncabezado();
+      render();
+    });
+    elTabs.appendChild(btn);
+  });
+}
+
+function opcionesUnicas(campo){
+  const set = new Set(colecciones[coleccionActual].datos.map(d => d[campo]).filter(Boolean));
+  return Array.from(set).sort();
+}
+
+function crearFiltros(){
+  elCategoria.innerHTML = '<option value="">Todas</option>';
+  opcionesUnicas("categoria").forEach(v => {
+    const op = document.createElement("option");
+    op.value = v; op.textContent = v;
+    elCategoria.appendChild(op);
+  });
+
+  elEstado.innerHTML = '<option value="">Todos</option>';
+  opcionesUnicas("estado").forEach(v => {
+    const op = document.createElement("option");
+    op.value = v; op.textContent = v;
+    elEstado.appendChild(op);
+  });
+
+  elAnio.innerHTML = '<option value="">Todos</option>';
+  opcionesUnicas("anio").sort((a, b) => b - a).forEach(v => {
+    const op = document.createElement("option");
+    op.value = v; op.textContent = v;
+    elAnio.appendChild(op);
+  });
+}
+
+function crearEncabezado(){
+  const cols = colecciones[coleccionActual].columnas;
+  elEncabezado.innerHTML = "";
+  cols.forEach(col => {
+    const th = document.createElement("th");
+    th.textContent = col.etiqueta;
+    th.dataset.clave = col.clave;
+    th.addEventListener("click", () => {
+      if(ordenClave === col.clave){
+        ordenAscendente = !ordenAscendente;
+      }else{
+        ordenClave = col.clave;
+        ordenAscendente = true;
+      }
+      render();
+    });
+    elEncabezado.appendChild(th);
+  });
+}
+
+function filtrarDatos(){
+  const texto = elBuscar.value.trim().toLowerCase();
+  const cat = elCategoria.value;
+  const est = elEstado.value;
+  const anio = elAnio.value;
+  const campoNombre = colecciones[coleccionActual].columnas[0].clave;
+
+  let datos = colecciones[coleccionActual].datos.filter(item => {
+    const coincideTexto = !texto || String(item[campoNombre]).toLowerCase().includes(texto);
+    const coincideCat = !cat || item.categoria === cat;
+    const coincideEstado = !est || item.estado === est;
+    const coincideAnio = !anio || String(item.anio) === anio;
+    return coincideTexto && coincideCat && coincideEstado && coincideAnio;
+  });
+
+  if(ordenClave){
+    datos = datos.slice().sort((a, b) => {
+      let va = a[ordenClave], vb = b[ordenClave];
+      if(typeof va === "number" && typeof vb === "number"){
+        return ordenAscendente ? va - vb : vb - va;
+      }
+      va = String(va).toLowerCase(); vb = String(vb).toLowerCase();
+      if(va < vb) return ordenAscendente ? -1 : 1;
+      if(va > vb) return ordenAscendente ? 1 : -1;
+      return 0;
+    });
+  }
+
+  return datos;
+}
+
+function render(){
+  // marcar orden visual en encabezados
+  Array.from(elEncabezado.children).forEach(th => {
+    th.classList.remove("orden-asc", "orden-desc");
+    if(th.dataset.clave === ordenClave){
+      th.classList.add(ordenAscendente ? "orden-asc" : "orden-desc");
+    }
+  });
+
+  const datos = filtrarDatos();
+  const cols = colecciones[coleccionActual].columnas;
+
+  elCuerpoTabla.innerHTML = "";
+
+  if(datos.length === 0){
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = cols.length;
+    td.className = "vacio";
+    td.textContent = "No se encontraron resultados con estos filtros.";
+    tr.appendChild(td);
+    elCuerpoTabla.appendChild(tr);
+  }else{
+    datos.forEach(item => {
+      const tr = document.createElement("tr");
+      cols.forEach(col => {
+        const td = document.createElement("td");
+        td.dataset.etiqueta = col.etiqueta;
+        if(col.clave === "estado"){
+          const span = document.createElement("span");
+          span.className = "etiqueta estado-" + item[col.clave];
+          span.textContent = item[col.clave];
+          td.appendChild(span);
+        }else{
+          td.textContent = item[col.clave];
+        }
+        tr.appendChild(td);
+      });
+      elCuerpoTabla.appendChild(tr);
+    });
+  }
+
+  elCantidad.textContent = datos.length;
+}
+
+elBuscar.addEventListener("input", render);
+elCategoria.addEventListener("change", render);
+elEstado.addEventListener("change", render);
+elAnio.addEventListener("change", render);
+elLimpiar.addEventListener("click", () => {
+  elBuscar.value = "";
+  elCategoria.value = "";
+  elEstado.value = "";
+  elAnio.value = "";
+  ordenClave = null;
+  render();
+});
+
+crearPestanas();
+crearFiltros();
+crearEncabezado();
+render();
+</script>
+
+</body>
+</html>
